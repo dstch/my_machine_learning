@@ -4,7 +4,7 @@
 @author: dstch
 @license: (C) Copyright 2013-2019, Regulus Tech.
 @contact: dstch@163.com
-@file: LSTM.py
+@file: LSTM_tensorflow.py
 @time: 2019/4/17 22:24
 @desc: https://zhuanlan.zhihu.com/p/27087310
        https://github.com/NELSONZHAO/zhihu/tree/master/anna_lstm
