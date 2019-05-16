@@ -4,9 +4,9 @@
 @author: dstch
 @license: (C) Copyright 2013-2019, Regulus Tech.
 @contact: dstch@163.com
-@file: clr_keras.py
-@time: 2019/5/15 11:49
-@desc: Cyclical Learning Rate in Keras
+@file: attenton_keras.py
+@time: 2019/5/16 19:43
+@desc: attention by keras
 """
 
 from keras.layers import Bidirectional, CuDNNLSTM, Embedding, Input, SpatialDropout1D, Dense, add, GlobalMaxPooling1D, \
@@ -108,7 +108,9 @@ def build_model(embedding_matrix, X_train, y_train, X_valid, y_valid):
     x = Bidirectional(CuDNNLSTM(LSTM_UNITS, return_sequences=True))(x)
     x = Bidirectional(CuDNNLSTM(LSTM_UNITS, return_sequences=True))(x)
 
+    # ---------------------------------- attention -----------------------------
     att = Attention(MAX_LEN)(x)
+
     hidden = concatenate([att, GlobalMaxPooling1D()(x), GlobalAveragePooling1D()(x), ])
 
     hidden = add([hidden, Dense(DENSE_HIDDEN_UNITS, activation='relu')(hidden)])
@@ -122,7 +124,7 @@ def build_model(embedding_matrix, X_train, y_train, X_valid, y_valid):
     # loss如果是列表，则模型的output需要是对应的列表
     # model.compile(loss=[custom_loss, 'binary_crossentropy'], optimizer='adam', metrics=["accuracy"])
 
-    # ------------------------ clr ----------------------------------------
+    # clr
     def scheduler(epoch):
         # 每隔100个epoch，学习率减小为原来的1/10
         if epoch % 100 == 0 and epoch != 0:
