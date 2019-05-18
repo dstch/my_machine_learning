@@ -52,9 +52,10 @@ train_data, train_labels = process_data(sentences, labels, char_dic, 100)
 
 # squash压缩函数和原文不一样，可自己定义
 def squash(x, axis=-1):
+    # K.square:逐项平方; K.sqrt:逐项开方; K.epsilon:以数值形式返回一个（一般来说很小的）数，用以防止除0错误
     s_squared_norm = K.sum(K.square(x), axis, keepdims=True)
     scale = K.sqrt(s_squared_norm + K.epsilon())
-    return x / scale
+    return x / scale  # S/||S||
 
 
 class Capsule(Layer):
@@ -105,6 +106,7 @@ class Capsule(Layer):
         b = K.zeros_like(u_hat_vecs[:, :, :, 0])  # shape = [None, num_capsule, input_num_capsule]
         # 动态路由部分
         for i in range(self.routings):
+            # K.premute_dimensions: 按照给定的模式重排一个张量的轴
             b = K.permute_dimensions(b, (0, 2, 1))  # shape = [None, input_num_capsule, num_capsule]
             c = K.softmax(b)
             c = K.permute_dimensions(c, (0, 2, 1))
@@ -127,6 +129,7 @@ def build_model(vocab, emb_dim, maxlen, n_cap, cap_dim, n_class):
                       )(word_input)
     x = Bidirectional(LSTM(100, return_sequences=True))(embed)
     x = Capsule(num_capsule=n_cap, dim_capsule=cap_dim, routings=3, share_weights=True)(x)
+    # Flatten层用来将输入“压平”，即把多维的输入一维化，常用在从卷积层到全连接层的过渡。Flatten不影响batch的大小。
     x = Flatten()(x)
     x = Dropout(0.5)(x)
     outputs = Dense(n_class, activation='softmax')(x)
