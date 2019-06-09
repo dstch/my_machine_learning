@@ -190,3 +190,7 @@ fabric.properties
 # Editor-based Rest Client
 .idea/httpRequests
 
+.idea/my_machine_learning.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
