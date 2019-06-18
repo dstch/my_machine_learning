@@ -18,7 +18,7 @@ def get_vocabulary(words):
 def bag_of_word(words, vocabulary):
     '''
     @description: 将文本数据转换为词袋模型向量
-    @param {type} 
+    @param {type}
     @return: 词袋模型向量(narray)
     '''
     word_list = [x.split() for x in words]
@@ -31,13 +31,18 @@ def bag_of_word(words, vocabulary):
     return bag
 
 
-def vocabulary_of_word(words):
+def vocabulary_of_word(words, vocabulary, max_length):
     '''
     @description: 将文本数据转换为词汇表模型向量
     @param {type} 
-    @return: 
+    @return: 词汇表向量(narray)
     '''
-    pass
+    word_list = [x.split() for x in words]
+    vocab = np.zeros((len(word_list), max_length))
+    for index, line in enumerate(word_list):
+        for word_index, word in enumerate(line[:max_length]):
+            vocab[index][word_index] = vocabulary.index(word)
+    return vocab
 
 
 data = pd.read_csv('data/train.tsv', usecols=[3])
