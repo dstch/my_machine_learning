@@ -45,5 +45,29 @@ def vocabulary_of_word(words, vocabulary, max_length):
     return vocab
 
 
+def N_gram():
+    pass
+
+
+def logistic():
+    pass
+
+
+def softmax():
+    pass
+
+
+def loss_fuction():
+    pass
+
+
+def gradient_descent():
+    pass
+
+
+# 讀取數據文本
 data = pd.read_csv('data/train.tsv', usecols=[3])
 data_x_list = np.array(data).tolist()
+# 讀取數據標簽
+y = pd.read_csv('data/train.tsv', usecols=[4])
+data_y_list = np.array(y).tolist()
