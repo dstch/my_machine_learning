@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from itertools import chain
 from collections import Counter
+from math import exp
 
 
 def get_vocabulary(words):
@@ -45,6 +46,15 @@ def vocabulary_of_word(words, vocabulary, max_length):
     return vocab
 
 
+def sigmoid(inX):
+    # 每個特徵乘以權重，然後把所有的結果相加
+    # 將這個總和帶入sigmoid函數，得到一個範圍
+    # 在0~1之間的數值。最後，大於0.5歸入1類，
+    # 小於0.5的歸入0類。
+    # inX=w0x0+w1x1+...+wnxn
+    return 1.0/(1+exp(-inX))
+
+
 def N_gram():
     pass
 
@@ -61,8 +71,38 @@ def loss_fuction():
     pass
 
 
-def gradient_descent():
-    pass
+def regularize(xMat):
+    inMat = xMat. copy()
+    inMeans = np. mean(inMat, axis=0)
+    invar = np. std(inMat, axis=0)
+    inMat = (inMat-inMeans)/invar
+    return inMat
+
+
+def BGD_LR(alpha=0.001, maxcycles=500):
+    xMat = np. mat(dataset)
+    yMat = np. mat(dataset).T
+    xMat = regularize(xMat)
+    m, n = xMat.shape
+    weights = np. zeros((n, 1))
+    for i in range(maxcycles):
+        grad = xMat.T*(xMat * weights-yMat)/m
+        weights = weights - alpha * grad
+    return weights
+
+
+def gradient_descent(dataMatIn, classLabels):
+    dataMatrix = np.mat(dataMatIn)
+    labelMat = np.mat(classLabels).transpose()
+    m, n = np.shape(dataMatrix)
+    alpha = 0.001  # 梯度下降步長
+    maxCycles = 500  # 迭代次數
+    weights = np.ones((n, 1))
+    for k in range(maxCycles):
+        h = sigmoid(dataMatrix*weights)
+        error = (labelMat-h)
+        weights = weights+alpha*dataMatrix.transpose()*error
+    return weights
 
 
 # 讀取數據文本
