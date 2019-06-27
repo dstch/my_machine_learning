@@ -79,7 +79,8 @@ def regularize(xMat):
     return inMat
 
 
-def BGD_LR(alpha=0.001, maxcycles=500):
+def BGD_LR(dataset, alpha=0.001, maxcycles=500):
+    # 参考 http://sofasofa.io/tutorials/python_gradient_descent/
     xMat = np. mat(dataset)
     yMat = np. mat(dataset).T
     xMat = regularize(xMat)
@@ -92,6 +93,11 @@ def BGD_LR(alpha=0.001, maxcycles=500):
 
 
 def gradient_descent(dataMatIn, classLabels):
+    '''
+    @description: 从机器学习实战梯度上升优化算法抄来的
+    @param {type} 
+    @return: 
+    '''
     dataMatrix = np.mat(dataMatIn)
     labelMat = np.mat(classLabels).transpose()
     m, n = np.shape(dataMatrix)
@@ -101,6 +107,8 @@ def gradient_descent(dataMatIn, classLabels):
     for k in range(maxCycles):
         h = sigmoid(dataMatrix*weights)
         error = (labelMat-h)
+        # 这里更新用矩阵乘以差值是因为采用了平方差损失函数，求导后正好等于矩阵乘以差值
+        # https://www.jianshu.com/p/ec3a47903768
         weights = weights+alpha*dataMatrix.transpose()*error
     return weights
 
