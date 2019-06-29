@@ -144,6 +144,7 @@ def stocGradAscent1(dataMatrix, classLabels, numIter=150):
     # 改进随机梯度上升算法
     m, n = np.shape(dataMatrix)
     weights = np.ones(n)
+    dataIndex = range(m)
     for j in range(numIter):
         for i in range(m):
             alpha = 4/(1.0+j+i)+0.01  # 学习率衰减
