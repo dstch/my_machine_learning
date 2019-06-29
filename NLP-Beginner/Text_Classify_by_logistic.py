@@ -1,9 +1,19 @@
 import numpy as np
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
 from itertools import chain
 from collections import Counter
 from math import exp
+import random
+
+
+def load_data(data_path='data/train.tsv'):
+    # 讀取數據文本
+    data = pd.read_csv(data_path, usecols=[3])
+    data_x_list = np.array(data).tolist()
+    # 讀取數據標簽
+    y = pd.read_csv(data_path, usecols=[4])
+    data_y_list = np.array(y).tolist()
+    return data_x_list, data_y_list
 
 
 def get_vocabulary(words):
@@ -70,6 +80,8 @@ def softmax():
 def loss_fuction():
     pass
 
+# region 求导代码，暂时无用
+
 
 def regularize(xMat):
     inMat = xMat. copy()
@@ -90,13 +102,14 @@ def BGD_LR(dataset, alpha=0.001, maxcycles=500):
         grad = xMat.T*(xMat * weights-yMat)/m
         weights = weights - alpha * grad
     return weights
+# endregion
 
 
 def gradient_descent(dataMatIn, classLabels):
     '''
     @description: 从机器学习实战梯度上升优化算法抄来的
-    @param {type} 
-    @return: 
+    @param {type}
+    @return:
     '''
     dataMatrix = np.mat(dataMatIn)
     labelMat = np.mat(classLabels).transpose()
@@ -107,15 +120,36 @@ def gradient_descent(dataMatIn, classLabels):
     for k in range(maxCycles):
         h = sigmoid(dataMatrix*weights)
         error = (labelMat-h)
-        # 这里更新用矩阵乘以差值是因为采用了平方差损失函数，求导后正好等于矩阵乘以差值
+        # 这里更新用矩阵乘以差值是因为采用了最小二乘法损失函数，
+        # 求导后正好等于矩阵乘以差值
         # https://www.jianshu.com/p/ec3a47903768
         weights = weights+alpha*dataMatrix.transpose()*error
     return weights
 
 
-# 讀取數據文本
-data = pd.read_csv('data/train.tsv', usecols=[3])
-data_x_list = np.array(data).tolist()
-# 讀取數據標簽
-y = pd.read_csv('data/train.tsv', usecols=[4])
-data_y_list = np.array(y).tolist()
+def stocGradAscent0(dataMatrix, classLabels):
+    # 随机梯度上升算法
+    # 每次循环更新一个参数，此处无迭代
+    m, n = np.shape(dataMatrix)
+    alpha = 0.01
+    weights = np.ones(n)
+    for i in range(m):
+        h = sigmoid(sum(dataMatrix[i]*weights))
+        error = classLabels[i]-h
+        weights = weights+alpha*error*dataMatrix[i]
+    return weights
+
+
+def stocGradAscent1(dataMatrix, classLabels, numIter=150):
+    # 改进随机梯度上升算法
+    m, n = np.shape(dataMatrix)
+    weights = np.ones(n)
+    for j in range(numIter):
+        for i in range(m):
+            alpha = 4/(1.0+j+i)+0.01  # 学习率衰减
+            randIndex = int(random.uniform(0, len(dataIndex)))  # 随机选取更新
+            h = sigmoid(sum(dataMatrix[randIndex]*weights))
+            error = classLabels[randIndex]-h
+            weights = weights+alpha*error*dataMatrix[randIndex]
+            del(dataMatrix[randIndex])
+    return weights
