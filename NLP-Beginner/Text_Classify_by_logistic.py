@@ -8,18 +8,22 @@ import random
 
 def load_data(data_path='data/train.tsv'):
     # 讀取數據文本
-    data = pd.read_csv(data_path, usecols=[3])
+    data = pd.read_csv(data_path, usecols=[2])
     data_x_list = np.array(data).tolist()
     # 讀取數據標簽
-    y = pd.read_csv(data_path, usecols=[4])
+    y = pd.read_csv(data_path, usecols=[3])
     data_y_list = np.array(y).tolist()
     return data_x_list, data_y_list
+
+
+def split_dataset(df):
+    pass
 
 
 def get_vocabulary(words):
     '''
     @description: 从语料中构建词汇表
-    @param {type} 
+    @param {type}
     @return: 词汇表(list)
     '''
     word_list = [set(x.split()) for x in words]
@@ -74,6 +78,7 @@ def logistic():
 
 
 def softmax():
+    # softmax regression是logistic regression的多分类拓展
     pass
 
 
