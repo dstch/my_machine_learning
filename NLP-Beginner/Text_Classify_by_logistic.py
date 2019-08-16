@@ -7,12 +7,13 @@ import random
 
 
 def load_data(data_path='data/train.tsv'):
+    temp_data = pd.read_csv(data_path, sep='\t')
+    data = temp_data[['Phrase', 'Sentiment']]
+    del data
     # 讀取數據文本
-    data = pd.read_csv(data_path, usecols=[2])
-    data_x_list = np.array(data).tolist()
+    data_x_list = np.array(data['Phrase']).tolist()
     # 讀取數據標簽
-    y = pd.read_csv(data_path, usecols=[3])
-    data_y_list = np.array(y).tolist()
+    data_y_list = np.array(data['Sentiment']).tolist()
     return data_x_list, data_y_list
 
 
@@ -66,7 +67,7 @@ def sigmoid(inX):
     # 在0~1之間的數值。最後，大於0.5歸入1類，
     # 小於0.5的歸入0類。
     # inX=w0x0+w1x1+...+wnxn
-    return 1.0/(1+exp(-inX))
+    return 1.0 / (1 + exp(-inX))
 
 
 def N_gram():
@@ -85,28 +86,31 @@ def softmax():
 def loss_fuction():
     pass
 
+
 # region 求导代码，暂时无用
 
 
 def regularize(xMat):
-    inMat = xMat. copy()
-    inMeans = np. mean(inMat, axis=0)
-    invar = np. std(inMat, axis=0)
-    inMat = (inMat-inMeans)/invar
+    inMat = xMat.copy()
+    inMeans = np.mean(inMat, axis=0)
+    invar = np.std(inMat, axis=0)
+    inMat = (inMat - inMeans) / invar
     return inMat
 
 
 def BGD_LR(dataset, alpha=0.001, maxcycles=500):
     # 参考 http://sofasofa.io/tutorials/python_gradient_descent/
-    xMat = np. mat(dataset)
-    yMat = np. mat(dataset).T
+    xMat = np.mat(dataset)
+    yMat = np.mat(dataset).T
     xMat = regularize(xMat)
     m, n = xMat.shape
-    weights = np. zeros((n, 1))
+    weights = np.zeros((n, 1))
     for i in range(maxcycles):
-        grad = xMat.T*(xMat * weights-yMat)/m
+        grad = xMat.T * (xMat * weights - yMat) / m
         weights = weights - alpha * grad
     return weights
+
+
 # endregion
 
 
@@ -123,12 +127,12 @@ def gradient_descent(dataMatIn, classLabels):
     maxCycles = 500  # 迭代次數
     weights = np.ones((n, 1))
     for k in range(maxCycles):
-        h = sigmoid(dataMatrix*weights)
-        error = (labelMat-h)
+        h = sigmoid(dataMatrix * weights)
+        error = (labelMat - h)
         # 这里更新用矩阵乘以差值是因为采用了最小二乘法损失函数，
         # 求导后正好等于矩阵乘以差值
         # https://www.jianshu.com/p/ec3a47903768
-        weights = weights+alpha*dataMatrix.transpose()*error
+        weights = weights + alpha * dataMatrix.transpose() * error
     return weights
 
 
@@ -139,9 +143,9 @@ def stocGradAscent0(dataMatrix, classLabels):
     alpha = 0.01
     weights = np.ones(n)
     for i in range(m):
-        h = sigmoid(sum(dataMatrix[i]*weights))
-        error = classLabels[i]-h
-        weights = weights+alpha*error*dataMatrix[i]
+        h = sigmoid(sum(dataMatrix[i] * weights))
+        error = classLabels[i] - h
+        weights = weights + alpha * error * dataMatrix[i]
     return weights
 
 
@@ -152,10 +156,14 @@ def stocGradAscent1(dataMatrix, classLabels, numIter=150):
     dataIndex = range(m)
     for j in range(numIter):
         for i in range(m):
-            alpha = 4/(1.0+j+i)+0.01  # 学习率衰减
+            alpha = 4 / (1.0 + j + i) + 0.01  # 学习率衰减
             randIndex = int(random.uniform(0, len(dataIndex)))  # 随机选取更新
-            h = sigmoid(sum(dataMatrix[randIndex]*weights))
-            error = classLabels[randIndex]-h
-            weights = weights+alpha*error*dataMatrix[randIndex]
-            del(dataMatrix[randIndex])
+            h = sigmoid(sum(dataMatrix[randIndex] * weights))
+            error = classLabels[randIndex] - h
+            weights = weights + alpha * error * dataMatrix[randIndex]
+            del (dataMatrix[randIndex])
     return weights
+
+
+if __name__ == '__main__':
+    data_x_list, data_y_list = load_data()
