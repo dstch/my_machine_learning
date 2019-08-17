@@ -6,7 +6,7 @@
 @contact: dstch@163.com
 @file: Text_Classify_by_Keras.py
 @time: 2019/8/16 16:48
-@desc:
+@desc: 对数据进行分词、去停用词，对中文和英文分别进行embedding进行比较
 """
 
 from keras.layers import Bidirectional, LSTM, CuDNNLSTM, Embedding, Input, Dense, add, GlobalAveragePooling1D, \
@@ -29,10 +29,28 @@ PATIENCE = 3
 LSTM_UNITS = 128
 DENSE_HIDDEN_UNITS = 512
 BATCH_SIZE = 1024
-EMBEDING_DIM = 100
+EMBEDDING_DIM = 100
+
+
+def read_data(file):
+    """
+    从csv文件中读取数据
+    :param file:
+    :return:
+    """
+    df = pd.read_csv(file, encoding='utf-8')
+    c_texts = []
+    e_texts = []
+    labels = []
+    for index, row in df.iterrows():
+        c_texts.append(row['caseName'])
+        e_texts.append(row['message'])
+        labels.append(row['result'])
+    return c_texts, e_texts, labels
 
 
 def create_embedding(word_index, word2vec_model):
+    # https: // github.com / SophonPlus / ChineseWordVectors
     embedding_matrix = np.zeros(word2vec_model.wv.vectors.shape)
     for word, i in word_index.items():
         try:
@@ -40,6 +58,25 @@ def create_embedding(word_index, word2vec_model):
             embedding_matrix[i] = embedding_vector
         except:
             continue
+    return embedding_matrix
+
+
+def create_glove_embedding(glove_path, word_index):
+    # 读取glove文件
+    embeddings_index = {}
+    with open(glove_path, 'r') as f:
+        for line in f:
+            values = line.split()
+            word = values[0]
+            coefs = np.asarray(values[1:], dtype='float32')
+            embeddings_index[word] = coefs
+    # 构建embedding矩阵
+    embedding_matrix = np.zeros((len(word_index) + 1, EMBEDDING_DIM))
+    for word, i in word_index.items():
+        embedding_vector = embeddings_index.get(word)
+        if embedding_vector is not None:
+            # words not found in embedding index will be all-zeros.
+            embedding_matrix[i] = embedding_vector
     return embedding_matrix
 
 
@@ -75,7 +112,7 @@ def train():
     w2v_model = ''
     split_data_file = ''
     model = Word2Vec.load(w2v_model)
-    _, labels = read_data(file)
+    _, _, labels = read_data(file)
     mlb = LabelBinarizer()
     labels = np.array(labels)
     labels = mlb.fit_transform(labels)
@@ -98,7 +135,7 @@ def predict():
     file = ''
     w2v_model = ''
     split_data_file = ''
-    _, labels = read_data(file)
+    _, _, labels = read_data(file)
     mlb = LabelBinarizer()
     labels = np.array(labels)
     labels = mlb.fit_transform(labels)
