@@ -8,13 +8,18 @@
 @time: 2019/8/16 10:02
 @desc: https://www.jianshu.com/p/0711f9e54dd2
 """
-
+import keras
+from keras.models import Model
 from keras.callbacks import Tensorboard
 
 # keras.callbacks在model.fit中发挥作用,写法是:
-......
+x_train = []
+y_train = []
+batch_size = 32
+epoch = 10
 tensorboard = Tensorboard(log_dir='log(就是你想存事件的文件夹)')
 callback_lists = [tensorboard]  # 因为callback是list型,必须转化为list
+model = Model()
 model.fit(x_train, y_train, bach_size=batch_size, epochs=epoch, shuffle='True', verbose='True',
           callbacks=callback_lists)
 
@@ -22,10 +27,10 @@ model.fit(x_train, y_train, bach_size=batch_size, epochs=epoch, shuffle='True', 
 
 from keras.callbacks import ModelCheckpoint
 
+file_name = ''
 # checkpoint添加到上文的callback_lists列表中使用
 checkpoint = ModelCheckpoint(filepath=file_name,  # (就是你准备存放最好模型的地方),
-                             monitor='val_acc',  # (或者换成你想监视的值,比如acc,loss,
-                             val_loss,  # 其他值应该也可以,还没有试),
+                             monitor='val_acc',  # (或者换成你想监视的值,比如acc,loss,val_loss  # 其他值应该也可以,还没有试),
                              verbose=1,  # (如果你喜欢进度条,那就选1,如果喜欢清爽的就选0,verbose=冗余的),
                              save_best_only='True',  # (只保存最好的模型,也可以都保存),
                              mode='auto',
@@ -45,9 +50,10 @@ period：CheckPoint之间的间隔的epoch数
 
 # 再次使用模型的时候,需要调用
 
-from keras.models import save_model  # (load_mode)
+from keras.models import load_model
 
-......
+x_test = []
+y_test = []
 model = load_model('best_weights.h5')
 loss, acc = model.evaluate(x_test, y_test, batch_size=batch_size, verbose=0)
 

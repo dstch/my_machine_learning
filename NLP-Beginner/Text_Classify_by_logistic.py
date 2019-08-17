@@ -167,3 +167,6 @@ def stocGradAscent1(dataMatrix, classLabels, numIter=150):
 
 if __name__ == '__main__':
     data_x_list, data_y_list = load_data()
+    vocab = get_vocabulary(data_x_list)
+    bag_data_x_list = bag_of_word(data_x_list, vocab)
+    weight = gradient_descent(bag_data_x_list, data_y_list)
