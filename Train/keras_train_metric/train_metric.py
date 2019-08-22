@@ -13,13 +13,17 @@ import numpy as np
 from keras.callbacks import Callback
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
 from Attention.attenton_keras import Attention
-
+from sklearn.preprocessing import LabelBinarizer
+from sklearn.model_selection import train_test_split
 from keras.layers import Bidirectional, CuDNNLSTM, Embedding, Input, SpatialDropout1D, Dense, add, GlobalMaxPooling1D, \
     GlobalAveragePooling1D, concatenate, Layer
 from keras.models import Model
 from keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
 from keras import initializers, regularizers, constraints
 from keras import backend as K
+from keras.preprocessing import text
+from gensim.models.word2vec import Word2Vec
+import matplotlib.pyplot as plt
 
 EMB_SIZE = 300
 MAX_LEN = 220
@@ -74,7 +78,6 @@ def build_model(embedding_matrix, X_train, y_train, X_valid, y_valid):
     '''
     credits go to: https://www.kaggle.com/thousandvoices/simple-lstm/
     '''
-    early_stop = EarlyStopping(monitor="val_loss", mode="min", patience=PATIENCE)
 
     words = Input(shape=(MAX_LEN,))
     x = Embedding(*embedding_matrix.shape, weights=[embedding_matrix], trainable=False)(words)
@@ -96,19 +99,64 @@ def build_model(embedding_matrix, X_train, y_train, X_valid, y_valid):
     model = Model(inputs=words, outputs=result)
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=["accuracy"])
 
-    # clr
-    def scheduler(epoch):
-        # 每隔100个epoch，学习率减小为原来的1/10
-        if epoch % 100 == 0 and epoch != 0:
-            lr = K.get_value(model.optimizer.lr)
-            K.set_value(model.optimizer.lr, lr * 0.1)
-            print("lr changed to {}".format(lr * 0.1))
-        return K.get_value(model.optimizer.lr)
-
-    reduce_lr = LearningRateScheduler(scheduler)
-
-    # ---------------------------------- train metrics -----------------------------
-    model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_valid, y_valid),
-              verbose=1, callbacks=[early_stop, reduce_lr, Metrics(X_valid, y_valid)])  # use clr
-
     return model
+
+
+def scheduler(epoch):
+    """
+    clr
+    :param epoch:
+    :return:
+    """
+    # 每隔100个epoch，学习率减小为原来的1/10
+    if epoch % 100 == 0 and epoch != 0:
+        lr = K.get_value(model.optimizer.lr)
+        K.set_value(model.optimizer.lr, lr * 0.1)
+        print("lr changed to {}".format(lr * 0.1))
+    return K.get_value(model.optimizer.lr)
+
+
+texts = []  # corpus
+labels = []
+w2v_model = ''  # word2vec model path
+
+# 标签处理，one-hot编码
+lb = LabelBinarizer()
+labels = lb.fit_transform(labels)
+# 把标签转回文本用 lb.inverse_transform()
+
+
+# 数据集划分
+X_train, X_val, y_train, y_val = train_test_split(texts, labels, test_size=0.2, random_state=2019)
+
+# 文本数据处理
+tokenizer = text.Tokenizer()
+tokenizer.fit_on_texts(texts)
+X_train = tokenizer.texts_to_sequences(X_train)
+X_val = tokenizer.texts_to_sequences(X_val)
+
+model = Word2Vec.load(w2v_model)
+embedding_matrix = create_embedding(tokenizer.word_index, model)
+model = build_model(embedding_matrix, X_train, y_train, X_val, y_val)
+
+# ---------------------------------- train metrics -----------------------------
+early_stop = EarlyStopping(monitor="val_loss", mode="min", patience=PATIENCE)
+reduce_lr = LearningRateScheduler(scheduler)
+# fit方法返回history对象，可以从对象中获取训练过程的数据
+H = model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_val, y_val),
+              verbose=1, callbacks=[early_stop, reduce_lr, Metrics(X_val, y_val)])  # use clr
+
+# 绘制训练过程的数据
+# plot the training loss and accuracy
+plt.style.use("ggplot")
+plt.figure()
+N = EPOCHS
+plt.plot(np.arange(0, N), H.history["loss"], label="train_loss")
+plt.plot(np.arange(0, N), H.history["val_loss"], label="val_loss")
+plt.plot(np.arange(0, N), H.history["acc"], label="train_acc")
+plt.plot(np.arange(0, N), H.history["val_acc"], label="val_acc")
+plt.title("Training Loss and Accuracy")
+plt.xlabel("Epoch #")
+plt.ylabel("Loss/Accuracy")
+plt.legend(loc="upper left")
+plt.savefig('plot.png')
