@@ -116,7 +116,8 @@ def build_model(embedding_matrix, X_train, y_train, X_valid, y_valid):
     hidden = add([hidden, Dense(DENSE_HIDDEN_UNITS, activation='relu')(hidden)])
     hidden = add([hidden, Dense(DENSE_HIDDEN_UNITS, activation='relu')(hidden)])
 
-    result = Dense(1, activation='sigmoid')(hidden)
+    # 此处Dense的第一个参数为输出size，即标签类别数
+    result = Dense(y_train.shape[-1], activation='sigmoid')(hidden)
 
     model = Model(inputs=words, outputs=result)
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=["accuracy"])
