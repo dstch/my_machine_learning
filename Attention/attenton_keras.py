@@ -11,7 +11,7 @@
 
 from keras.layers import Bidirectional, CuDNNLSTM, Embedding, Input, SpatialDropout1D, Dense, add, GlobalMaxPooling1D, \
     GlobalAveragePooling1D, concatenate, Layer
-from keras.models import Model
+from keras.models import Model, load_model
 from keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
 from keras import initializers, regularizers, constraints
 from keras import backend as K
@@ -143,3 +143,15 @@ def build_model(embedding_matrix, X_train, y_train, X_valid, y_valid):
     # model.compile(loss=[custom_loss, 'binary_crossentropy'], loss_weights=[loss_weight, 1.0], optimizer='adam')
 
     return model
+
+
+def my_load_model(model_path, test_data):
+    print('[INFO] loading network...')
+
+    # 在载入模型时，显示声明自定义层
+    model = load_model(model_path, custom_objects={'Attention': Attention})
+
+    prediction = model.predict(test_data, batch_size=BATCH_SIZE)
+
+    # 此处是模型直接输出，后续可以采用LabelBinarizer将数值转换为实际标签
+    return prediction
